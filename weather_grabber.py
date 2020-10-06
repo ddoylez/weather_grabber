@@ -1,6 +1,5 @@
 import argparse
 import csv
-import pytest
 import os
 import re
 
@@ -11,7 +10,6 @@ load_dotenv()
 DEFAULT_API_KEY = os.getenv('API_APP_ID')
 DEFAULT_API_ENDPOINT = os.getenv('API_ENDPOINT')
 DEFAULT_API_LANG = os.getenv('API_LANG')
-DEFAULT_LINE_LENGTH = os.getenv('LINE_LENGTH')
 VER_NO = os.getenv('VERSION_NUMBER')
 
 
@@ -105,8 +103,8 @@ def get_location_from_user():
 
 
 # Regex search a string for (City, State)
-def get_location_from_str(str):
-    matches = re.search('([A-Za-z ]+)(, ?([A-Za-z ]+)?)?', str)
+def get_location_from_str(str_in):
+    matches = re.search('([A-Za-z ]+)(, ?([A-Za-z ]+)?)?', str_in)
     return matches
 
 
@@ -172,7 +170,8 @@ class TestWeather:
 
     # Confirm that the API is responding with results
     def test_api_call(self):
-        assert get_current_weather(DEFAULT_API_ENDPOINT, 'Chicago,US-IL', DEFAULT_API_KEY).status_code == requests.codes.ok
+        assert get_current_weather(DEFAULT_API_ENDPOINT, 'Chicago,US-IL',
+                                   DEFAULT_API_KEY).status_code == requests.codes.ok
 
     # Confirm kelvin units are returned
     def test_unit_kelvin(self):
