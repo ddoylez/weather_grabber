@@ -216,12 +216,12 @@ class TestWeather:
     # Test that missing commas will affect state detection
     def test_regex_city_state(self):
         matches = get_location_from_str('Chicago IL')
-        assert (matches[1] == 'Chicago IL') and (matches[3] is None)
+        assert (matches.group(1) == 'Chicago IL') and (matches.group(3) is None)
 
     # Test that commas correctly detect states
     def test_regex_city_comma_state(self):
         matches = get_location_from_str('Chicago, IL')
-        assert (matches[1] == 'Chicago') and (matches[3] == 'IL')
+        assert (matches.group(1) == 'Chicago') and (matches.group(3) == 'IL')
 
 
 if __name__ == '__main__':
