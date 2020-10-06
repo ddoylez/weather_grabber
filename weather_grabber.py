@@ -90,7 +90,7 @@ def output_weather(output):
 # Create a parser for commandline arguments
 def get_parser(version):
     parser = argparse.ArgumentParser(
-        description='Get the current weather from a specified location through the OpenWeather API.')
+        description='Get the current weather from a specified location through the OpenWeatherMap API.')
     parser.add_argument('--units', dest='units', default='imperial', choices=['imperial', 'metric', 'standard'])
     parser.add_argument('--version', action='version', version='%(prog)s v{}'.format(version))
     return parser
