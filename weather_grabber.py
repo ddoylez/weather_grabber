@@ -47,7 +47,7 @@ def format_us_state(state):
 # Get the weather for a location from the API endpoint
 def get_current_weather(api_endpoint, location, api_key, lang=DEFAULT_API_LANG, units='standard'):
     # build API endpoint and query
-    endpoint = f'http://{api_endpoint}/data/2.5/weather?q={location}&appid={api_key}&lang={lang}&units={units}'
+    endpoint = f'{api_endpoint}?q={location}&appid={api_key}&lang={lang}&units={units}'
     try:
         resp = requests.get(endpoint)
         return resp
