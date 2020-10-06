@@ -1,5 +1,6 @@
 import argparse
 import csv
+import pytest
 import os
 import re
 
@@ -48,7 +49,7 @@ def format_weather_response(response, units):
 
 
 # Get the weather for a location from the API endpoint
-def get_current_weather(api_endpoint, location, api_key, lang=DEFAULT_API_LANG, units='standard'):
+def get_current_weather(api_endpoint, location, api_key, lang=DEFAULT_API_LANG, units='imperial'):
     # build API endpoint and query
     endpoint = f'{api_endpoint}?q={location}&appid={api_key}&lang={lang}&units={units}'
     resp = requests.get(endpoint)
@@ -82,16 +83,16 @@ def get_location_from_args(args):
 # Get input from the user
 def get_location_from_user():
     user_input = input('Where are you? (City, State)\n')
-    matches = re.search('([A-Za-z ]+)(, ?([A-Za-z ]+)?)?', user_input)
+    matches = get_location_from_str(user_input)
 
     city_raw = None
     try:
-        city_raw = matches[1]
+        city_raw = matches.group(1).strip()
     except TypeError:
         print('Invalid location entered...\nPlease try somewhere else.')
         exit(1)
 
-    state_raw = matches[3]
+    state_raw = matches.group(3).strip()
     state = None
     if state_raw is not None:
         state = format_us_state(state_raw)
@@ -101,6 +102,12 @@ def get_location_from_user():
     else:
         location = f'{city_raw},{state}'
     return location
+
+
+# Regex search a string for (City, State)
+def get_location_from_str(str):
+    matches = re.search('([A-Za-z ]+)(, ?([A-Za-z ]+)?)?', str)
+    return matches
 
 
 # Create a parser for commandline arguments
@@ -147,6 +154,74 @@ def main():
         exit(1)
 
     exit(0)
+
+
+# Test cases for pytest to run
+class TestWeather:
+    # Test "conversion" of an ISO code
+    def test_state_iso(self):
+        assert format_us_state('US-IL') == 'US-IL'
+
+    # Test conversion of a full state name
+    def test_state_long(self):
+        assert format_us_state('wisconsin') == 'US-WI'
+
+    # Test conversion of a short state name
+    def test_state_short(self):
+        assert format_us_state('iA') == 'US-IA'
+
+    # Confirm that the API is responding with results
+    def test_api_call(self):
+        assert get_current_weather(DEFAULT_API_ENDPOINT, 'Chicago,US-IL', DEFAULT_API_KEY).status_code == requests.codes.ok
+
+    # Confirm kelvin units are returned
+    def test_unit_kelvin(self):
+        assert get_degree_suffix('standard') == 'K'
+
+    # Confirm celsius units are returned
+    def test_unit_celsius(self):
+        assert get_degree_suffix('metric') == '°C'
+
+    # Confirm fahrenheit units are returned
+    def test_unit_fahrenheit(self):
+        assert get_degree_suffix('imperial') == '°F'
+
+    # Test that cities are the default detection
+    def test_regex_single_city(self):
+        assert get_location_from_str('Chicago').group(1) == 'Chicago'
+
+    # Test that spaces are included in city detection
+    def test_regex_triple_cty(self):
+        assert get_location_from_str('Salt Lake City').group(1) == 'Salt Lake City'
+
+    # Test that spaces are included in state detection
+    def test_regex_double_state(self):
+        assert get_location_from_str('New York, New York').group(3) == 'New York'
+
+    # Test that a blank entry breaks the regex
+    def test_regex_blank(self):
+        matches = get_location_from_str('')
+        assert matches is None
+
+    # Test that numbers are not picked up as a city
+    def test_regex_numeric_city(self):
+        matches = get_location_from_str('123, Iowa')
+        assert (matches.group(1) == ' Iowa') and (matches.group(3) != 'Iowa')
+
+    # Test that numbers are not picked up as a state
+    def test_regex_numeric_state(self):
+        matches = get_location_from_str('Des Moines, 456')
+        assert (matches.group(1) == 'Des Moines') and (matches.group(3) != '456')
+
+    # Test that missing commas will affect state detection
+    def test_regex_city_state(self):
+        matches = get_location_from_str('Chicago IL')
+        assert (matches[1] == 'Chicago IL') and (matches[3] is None)
+
+    # Test that commas correctly detect states
+    def test_regex_city_comma_state(self):
+        matches = get_location_from_str('Chicago, IL')
+        assert (matches[1] == 'Chicago') and (matches[3] == 'IL')
 
 
 if __name__ == '__main__':
