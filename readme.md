@@ -5,7 +5,7 @@ Output from weather_grabbery.py -h\
 usage: weather_grabber.py [-h] [--city CITY] [--state STATE] [--lang LANG]
                           [--units {imperial,metric,standard}] [--version]
 
-Get the current weather from a specified location through the OpenWeatherMap API.\
+Get the current weather from a specified location through the OpenWeatherMap API.
 
 optional arguments:\
   -h, --help            show this help message and exit\
