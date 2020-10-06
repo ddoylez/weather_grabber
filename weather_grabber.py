@@ -14,7 +14,7 @@ DEFAULT_LINE_LENGTH = os.getenv('LINE_LENGTH')
 VER_NO = os.getenv('VERSION_NUMBER')
 
 
-# Convert a US State in ISO-3166-2:US Format
+# Convert a US State to ISO-3166-2:US Format
 def format_us_state(state):
     state_caps = state.upper()
     # open csv of ISO codes
@@ -40,7 +40,7 @@ def format_weather_response(response, units):
     try:
         city = weather_json['name']
         str_out += f' in {city}'
-    except:
+    except KeyError:
         # ignore the name attribute if it is not found
         pass
 
@@ -84,9 +84,10 @@ def get_location_from_user():
     user_input = input('Where are you? (City, State)\n')
     matches = re.search('([A-Za-z ]+)(, ?([A-Za-z ]+)?)?', user_input)
 
+    city_raw = None
     try:
         city_raw = matches[1]
-    except TypeError as e:
+    except TypeError:
         print('Invalid location entered...\nPlease try somewhere else.')
         exit(1)
 
@@ -134,7 +135,8 @@ def main():
     else:
         location = get_location_from_user()
     try:
-        response = get_current_weather(DEFAULT_API_ENDPOINT, location, DEFAULT_API_KEY, lang=args.lang, units=args.units)
+        response = get_current_weather(DEFAULT_API_ENDPOINT, location, DEFAULT_API_KEY, lang=args.lang,
+                                       units=args.units)
         weather_output = format_weather_response(response, args.units)
         output_weather(weather_output)
     except requests.HTTPError as e:
